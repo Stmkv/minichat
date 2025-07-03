@@ -25,6 +25,7 @@ async def tcp_echo_client():
                 break
             try:
                 decode_message = data.decode(encoding="utf-8")
+                print(decode_message.replace("\n", ""))
                 await write_file(decode_message)
             except UnicodeDecodeError:
                 continue
