@@ -1,14 +1,16 @@
 import asyncio
-import aiofiles
 from datetime import datetime
 
-CHAT_HOST = 'minechat.dvmn.org'
+import aiofiles
+import configargparse
+
+CHAT_HOST = "minechat.dvmn.org"
 CHAT_PORT = 5000
 MAX_READE_BYTES = 100
 
 
 async def write_file(message):
-    async with aiofiles.open('message.txt', 'a') as file:
+    async with aiofiles.open("message.txt", "a") as file:
         time_now = datetime.today().strftime("[%d.%m.%Y %H:%M]")
         await file.write(f"{time_now} {message}")
 
