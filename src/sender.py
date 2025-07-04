@@ -18,12 +18,12 @@ init(autoreset=True)
 
 
 async def authorise(
-    hash: str, writer: asyncio.StreamWriter, reader: asyncio.StreamReader
+        args: str, writer: asyncio.StreamWriter, reader: asyncio.StreamReader
 ) -> None:
     response = await reader.readuntil(b"\n")
     logger.info(response)
 
-    writer.write(f"{hash}\n".encode())
+    writer.write(f"{args.token}\n".encode())
     await writer.drain()
 
     response = await reader.readuntil(b"\n")
@@ -34,20 +34,22 @@ async def authorise(
             Fore.RED
             + "Был указан неверный токен, зарегистрируйте нового пользователя, либо измените токен"
         )
-        response = await register_with_unknown_hash(writer, reader)
+        response = await register_with_unknown_token(writer, reader, args.username)
         return response
     return json_response
 
 
-async def register_with_unknown_hash(
-    writer: asyncio.StreamWriter, reader: asyncio.StreamReader
+async def register_with_unknown_token(
+        writer: asyncio.StreamWriter,
+        reader: asyncio.StreamReader,
+        username: str,
 ) -> dict:
     """Функция обрабатывает случай когда пользователь ввел неправильный пароль."""
     response = await reader.readuntil(b"\n")
     logger.info(response.decode().strip())
-
-    nickname = input("Введите ник для регистрации или завершите регистрацию ctrl+c:\n")
-    writer.write(f"{nickname}\n".encode())
+    if not username:
+        username = input("Введите ник для регистрации или завершите регистрацию ctrl+c:\n")
+    writer.write(f"{username}\n".encode())
     await writer.drain()
 
     response = await reader.readuntil(b"\n")
@@ -63,7 +65,9 @@ async def register_with_unknown_hash(
 
 
 async def register_without_hash(
-    writer: asyncio.StreamWriter, reader: asyncio.StreamReader
+        writer: asyncio.StreamWriter,
+        reader: asyncio.StreamReader,
+        username: str,
 ) -> dict:
     """Функция обрабатывает случай когда пользователь не задал пароль по умолчанию"""
     writer.write(b"\n")
@@ -72,9 +76,9 @@ async def register_without_hash(
     for _ in range(2):
         response = await reader.readuntil(b"\n")
         logger.info(response.decode().strip())
-
-    nickname = input("Введите ник для регистрации:")
-    writer.write(f"{nickname}\n".encode())
+    if not username:
+        username = input("Введите ник для регистрации:")
+    writer.write(f"{username}\n".encode())
     await writer.drain()
 
     response = await reader.readuntil(b"\n")
@@ -106,14 +110,14 @@ async def tcp_echo_client(args: argparse.Namespace) -> None:
     token = args.token
     if not token:
         print(Fore.GREEN + "___Регистрация нового пользователя___\n")
-        response = await register_without_hash(writer, reader)
+        response = await register_without_hash(writer, reader, args.username)
         print(
             Fore.GREEN
             + f"""___{response['nickname']} успешно авторизованы___\n
     Ваш токен: сохранен в файле .env\n"""
         )
     else:
-        response = await authorise(token, writer, reader)
+        response = await authorise(args, writer, reader)
         print(Fore.GREEN + f"___{response['nickname']} успешно авторизованы___\n")
     await submit_message(writer)
 
@@ -128,6 +132,9 @@ async def main() -> None:
     parser.add("--port", type=int, help="port number", default=5050)
     parser.add(
         "--token", help="personal hash for chat", default=os.getenv("CHAT_TOKEN")
+    )
+    parser.add(
+        "--username", help="username for chat", default=os.getenv("CHAT_USERNAME")
     )
     args, unknown = parser.parse_known_args()
     await tcp_echo_client(args)
