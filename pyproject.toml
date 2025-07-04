@@ -7,4 +7,6 @@ requires-python = ">=3.13"
 dependencies = [
     "aiofiles>=24.1.0",
     "configargparse>=1.7.1",
+    "python-dotenv>=1.1.1",
+    "pyyaml>=6.0.2",
 ]
