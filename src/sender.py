@@ -1,11 +1,12 @@
 import argparse
 import asyncio
+import logging
+import os
 
 import configargparse
-import os
-import logging
-from logger.logger_setup import setup_logging
 from dotenv import load_dotenv
+
+from logger.logger_setup import setup_logging
 
 setup_logging()
 logger = logging.getLogger("sender")
@@ -42,13 +43,15 @@ async def tcp_echo_client(args: argparse.Namespace) -> None:
 
 async def main() -> None:
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(current_dir, 'configs', 'argparse_config_sender.txt')
+    config_path = os.path.join(current_dir, "configs", "argparse_config_sender.txt")
 
     load_dotenv()
     parser = configargparse.ArgParser(default_config_files=[config_path])
-    parser.add('--host', help='host to connect', default='minechat.dvmn.org')
-    parser.add('--port', type=int, help='port number', default=5050)
-    parser.add('--password', help='personal hash for chat', default=os.getenv("CHAT_PASSWORD"))
+    parser.add("--host", help="host to connect", default="minechat.dvmn.org")
+    parser.add("--port", type=int, help="port number", default=5050)
+    parser.add(
+        "--password", help="personal hash for chat", default=os.getenv("CHAT_PASSWORD")
+    )
     args, unknown = parser.parse_known_args()
     await tcp_echo_client(args)
 

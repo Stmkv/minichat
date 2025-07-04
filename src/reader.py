@@ -38,12 +38,12 @@ async def tcp_echo_client(args: argparse.Namespace) -> None:
 
 async def main() -> None:
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(current_dir, 'configs', 'argparse_config_reader.txt')
+    config_path = os.path.join(current_dir, "configs", "argparse_config_reader.txt")
 
     parser = configargparse.ArgParser(default_config_files=[config_path])
-    parser.add('--host', help='host to connect', default='minechat.dvmn.org')
-    parser.add('--port', type=int, help='port number', default=5000)
-    parser.add('--history', help='history file', default='minechat.history')
+    parser.add("--host", help="host to connect", default="minechat.dvmn.org")
+    parser.add("--port", type=int, help="port number", default=5000)
+    parser.add("--history", help="history file", default="minechat.history")
     args = parser.parse_args()
 
     await tcp_echo_client(args)
