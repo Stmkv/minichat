@@ -37,7 +37,7 @@ handlers:
 loggers:
   sender:
     level: DEBUG
-    handlers: [console, file, error_file]
+    handlers: [file, error_file]
     propagate: false
 
   reader:
