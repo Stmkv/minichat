@@ -29,6 +29,10 @@ async def authorise(
     response = await reader.readuntil(b"\n")
     logger.info(response)
     if response == b"null\n":
+        print(
+            Fore.RED
+            + "Был указан неверный токен, зарегистрируйте нового пользователя, либо измените токен"
+        )
         response = await register_with_unknown_hash(writer, reader)
     return response
 
