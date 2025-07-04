@@ -9,7 +9,7 @@ from colorama import Fore, Style, init
 from dotenv import load_dotenv
 
 from logger.logger_setup import setup_logging
-from utils import logging_user_data, save_token
+from utils import logging_user_data, save_token, clean_text
 
 setup_logging()
 logger = logging.getLogger("sender")
@@ -35,8 +35,8 @@ async def authorise(
             + "Был указан неверный токен, зарегистрируйте нового пользователя, либо измените токен"
         )
         response = await register_with_unknown_hash(writer, reader)
-
-    return response
+        return response
+    return json_response
 
 
 async def register_with_unknown_hash(
@@ -59,7 +59,6 @@ async def register_with_unknown_hash(
         Fore.YELLOW
         + f"Ваш ник: {json_response['nickname']}\nВаш токен: сохранен в файле .env\n"
     )
-
     return json_response
 
 
@@ -89,7 +88,7 @@ async def register_without_hash(
 
 async def submit_message(writer: asyncio.StreamWriter) -> None:
     while True:
-        message = input(Fore.YELLOW + "Введите сообщение:")
+        message = clean_text(input(Fore.YELLOW + "Введите сообщение:"))
         try:
             writer.write(f"{message}\n\n".encode())
             print(Fore.GREEN + "Сообщение успешно отправлено")

@@ -25,3 +25,7 @@ def save_token(token: str, env_path: str = ".env"):
             if not line.startswith(f"{key}="):
                 f.write(line)
         f.write(new_line)
+
+
+def clean_text(text: str) -> str:
+    return text.replace("\n", "").replace("\r", "")
