@@ -9,7 +9,7 @@ from colorama import Fore, Style, init
 from dotenv import load_dotenv
 
 from logger.logger_setup import setup_logging
-from utils import logging_user_data
+from utils import logging_user_data, save_token
 
 setup_logging()
 logger = logging.getLogger("sender")
@@ -28,12 +28,14 @@ async def authorise(
 
     response = await reader.readuntil(b"\n")
     logger.info(response)
-    if response == b"null\n":
+    json_response = json.loads(response.decode())
+    if json_response is None:
         print(
             Fore.RED
             + "Был указан неверный токен, зарегистрируйте нового пользователя, либо измените токен"
         )
         response = await register_with_unknown_hash(writer, reader)
+
     return response
 
 
@@ -44,14 +46,19 @@ async def register_with_unknown_hash(
     response = await reader.readuntil(b"\n")
     logger.info(response.decode().strip())
 
-    nickname = input("Введите ник для регистрации:")
+    nickname = input("Введите ник для регистрации или завершите регистрацию ctrl+c:\n")
     writer.write(f"{nickname}\n".encode())
     await writer.drain()
 
     response = await reader.readuntil(b"\n")
     json_response = json.loads(response.decode())
 
+    save_token(json_response["account_hash"])
     logging_user_data(json_response)
+    print(
+        Fore.YELLOW
+        + f"Ваш ник: {json_response['nickname']}\nВаш токен: сохранен в файле .env\n"
+    )
 
     return json_response
 
@@ -75,6 +82,7 @@ async def register_without_hash(
     json_response = json.loads(response.decode())
 
     logging_user_data(json_response)
+    save_token(json_response["account_hash"])
 
     return json_response
 
@@ -103,7 +111,7 @@ async def tcp_echo_client(args: argparse.Namespace) -> None:
         print(
             Fore.GREEN
             + f"""___{response['nickname']} успешно авторизованы___\n
-    Ваш токен: {response['account_hash']}, запомните его """
+    Ваш токен: сохранен в файле .env\n"""
         )
     else:
         response = await authorise(token, writer, reader)
@@ -120,7 +128,7 @@ async def main() -> None:
     parser.add("--host", help="host to connect", default="minechat.dvmn.org")
     parser.add("--port", type=int, help="port number", default=5050)
     parser.add(
-        "--token", help="personal hash for chat", default=os.getenv("CHAT_PASSWORD")
+        "--token", help="personal hash for chat", default=os.getenv("CHAT_TOKEN")
     )
     args, unknown = parser.parse_known_args()
     await tcp_echo_client(args)
